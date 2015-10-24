@@ -1,0 +1,293 @@
+Pattern Mining on Traces of Open Classroom
+
+Maximal Forward Reference Sequences
+In the following section we obtain the Maximal Forward References MFR for our data set. First we will explain what is MFR. A Maximal Forward Reference MFR of a Web user is a longest sequence of Web pages visited by the user without revisiting some previously visited page in the sequence.
+In our case we intend to find MFR for a student’s behavior in studying the parts of a specific course without revisiting any previously studied part.  
+In the following section we have Maximal Forward Reference Sequences along with their ratio. In order to obtain MFR first we convert out data set in the following format, present in file \OCR\MFR\MFR_Input.txt. Here each row represents a student and the numbers with represent the parts studied in sequential manner with respect to time. The first row states that this student studied only 4 parts in total and these are actually 3 distinct parts. He first studied 10, then 11,12 and then studied the part 10 again. In order to achieve this format of file we have written perl code, since perl gives us faster text mining. The code is present in location \OCR\perl\parser.pl and the main subroutine to convert is ‘preprocessing()’ 
+
+\OCR\MFR\MFR_Input.txt  (609 rows)
+10 11 12 10
+3 2 4 5 6 9 10 11 12 13 35 36    
+3 3 5 6
+
+
+We applied the algorithm from paper “Efficient data mining for path traversal pattern” by “MS Chen, JS Park, PS Yu” present in folder location \OCR\MFR\MFR.pdf. For this algorithm we have coded 2 versions. One is with pruning present in the subroutine *** and one is without pruning coded in subroutine  ***(this one is the exact algorithm from paper). 
+In the implementation with pruning, the calculation of MFR for a student we check it again, in order to see if we have MFR in the following form, |3,4,5|2,3,4,5,6,7| here the prior MFR 3,4,5 is contained in the later one in exact sequence (do not cater 4,3,5) therefore we will delete the first one and keep the maximal only. i.e. |2,3,4,5,6,7|. Whereas according to the actual algorithm we keep both |3,4,5|2,3,4,5,6,7|. Although the actual algorithm from the paper does cater the case when we have a situation like this |2,3,4,5,6,7|3,4,5| then the algorithm automatically check if the upcoming MFR is contained in any previous one then it doesn’t write it and it will produce the output as |2,3,4,5,6,7| only.
+
+Following are the subroutines containing the code for various types of MFR.
+•	calculate_MFR_Main()
+•	Maximal_Forward_Reference_All_withoutProuning_Ratio()
+•	Maximal_Forward_Reference_All_withProuning_Ratio()
+
+Above stated paper contains a detailed example for MFR. Following is an example of MFR calculated in out scenario.
+ 
+The following line represents a student’s behavior while reading parts he studied parts 13,14,15,….according to time. (This is the student in row 159)
+Input: 13 14 15 16 17 18 19 20 20 21 22 23 24 25 26 27 25 28 29 30 31 31 32 34 36 34 36
+       
+ For the above input the algorithm with and without pruning produces following output line.
+
+Output Without pruning:
+|,13,14,15,16,17,18,19,20
+|,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27
+|,13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,30,31
+|,13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,30,31,32,34,36
+|,13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,30,31,32,34,36|
+
+Output With pruning:
+|13,14,15,16,17,18,19,20,21,22,23,24,25,26,27
+|13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,30,31,32,34,36| Inp:27 Oup:35 Ratio:1.30|
+
+Following are the file locations for input and output.
+Input Files: 
+\OCR\MFR\MFR_Input.txt  (609 rows)
+
+Output Files:
+
+Text file: \OCR\MFR\Maximal_Forward_Reference_All_withProuning_Ratio.txt
+
+XLSX file for better readability:
+\OCR\MFR\Maximal_Forward_Reference_All_withProuning_Ratio.xlsx
+
+Tab “Order” contains the same output but ordered according to ratio. The higher the value for ratio is the more representative MFR is for a given student. The ratio values greater than 1 indicate the duplicate parts which mean that this student studied some parts repeatedly.
+
+
+Output of Algorithm Without pruning: 
+Text file:  
+\OCR\MFR\Maximal_Forward_Reference_All_withoutProuning.txt
+
+XLSX file for better readability:
+\OCR\MFR\
+
+
+Each line of the input and output file represent a distinct user.
+
+Output File Format: \OCR\MFR\MFR_Input.txt  (609 rows)
+
+|3,2,4,5,6,9,10,11,12,13,35,36| Inp:12 Oup:12 Ratio:1.00|
+|3| Inp:2 Oup:1 Ratio:0.50|
+|30,31,32,34,36|30,34,36| Inp:31 Oup:8 Ratio:0.26|
+
+•	The pipe sign | represents the separation between sequences
+•	Coma  , represents the separation between elements of a particular sequence
+•	Inp: represents the number of parts as input. These are the parts studied by the student in order of time.
+•	Oup: represents the number of parts (non distinct) represented in MFR
+•	Ratio: represents the ratio of Oup/Inp which shows that how much an MFR is representative of user’s actual reading routine.
+
+Sequential Pattern Mining
+After having the Maximal Forward References when we execute the GSP Algorithm from SPMF on MFRs. GSP is one of the first algorithm for discovering sequential patterns in sequence databases, proposed by Srikant et al. (1992). It uses an Apriori-like approach for discovering sequential patterns.
+The input file for the algorithm is \OCR\GSP\GSPinputwithoutpruning.txt.
+
+We get the following file as output.
+
+\OCR\GSP\GSPoutputwithoutpruning.txt
+
+This is not an interesting output, since even with 0.5 percent support, we cannot execute the algorithm complete because of Memory overflow error.
+
+Large Reference Sequence
+The large references are those sequences which is the path most frequently visited by many users in the database. These large references are the final sequence which can be used for further analysis and improvement of website and web-data. Also these sequence need to be consecutive in maximal forward reference itself.
+
+The traversal patterns are achieved first by mining the maximal forward references from the web server log and after this the maximal forward reference are used to obtain the large references which are the most frequently used paths by the user for a particular course. In this case we have nodeJS. Eventually our aim is to obtain the large reference sequences LRS.
+Input: The input given, are the maximal forward references for each student.
+Large reference sequences are present in the file “\OCR\LRS\LRS.xlsx”
+
+Following is the explanation of the tabs of for this file.
+•	The first tab ‘unordered LRS’ contains a large reference sequence along with its support i.e the number of students who follow this sequence. And the last column represents the instances where it is present. E.g ‘Inst: 3 61 92’ represent that this LRS belong to student 3rd, 61 and 92. These are the students ordered in the same way ***
+•	The second tab ‘ordered LRS’ represents the same data whereas the sequences are ordered according to support.
+
+
+Example:
+
+6 9 10 11 12 13  	Sup:	12	Inst: 1 121 133 138 222 232 317 323 331 411 518 540
+
+The MFR sequence 6 9 10 11 12 13 is present in our data for 12 students. And the instances are  “1 121 133 138 222 232 317 323 331 411 518 540” 
+
+Following are the instances
+1	3 2 4 5 6 9 10 11 12 13 35 36
+121	2 3 4 5 6 9 10 11 12 13 14 15
+133	2 3 4 5 6 -1 2 3 4 5 6 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+138	2 3 4 5 6 9 10 11 12 13 14 15 16 17 18
+222	2 3 4 5 6 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+232	…
+317	…
+323	…
+331	…
+411	…
+518	…
+540	…
+
+
+
+In the following we explain the procedure to calculate the LRS.
+
+In order to calculate the LRS we use CM-SPAM algorithm of SPMF. The input file given to this algorithm is ".\OCR\LRS\LRS_Input.txt" having 609 rows, each line represents a student and its MFRs separated by -1 and are the pruned ones. We execute CM-SPAM algorithm with support:0.05 and the output is saved in ".\OCR\LRS\LRS_Output.txt" from this file the support for each result is removed, the reason for this is that SPMF doesn’t calculate the correct support for this Algorithm. 
+In order to calculate the correct support we write a subroutine in perl 'largeReferenceSequence()' which calculates it. This subroutine takes in 2 files "\OCR\LRS\LRS_Input.txt" 609 rows. The second file is ".\OCR\LRS\LRS_Output.txt" which is the output we received from SPMF, from which the support is removed and used in this in a comparison manner to calculate the correct support. Here in this algorithm we use the string comparisons so '4 5 15' is not equal to '4 5 6 15' although in actual we may have the instances '4 5 6 15' but while finding the support of '4 5 15' we won’t count '4 5 6 15'
+
+This is the reason that is why SPMF was giving high support for some cases whereas this algorithm gives correct support to them because for us the order and the gap for parts studied is important.
+
+Finding the backward references in MFRs.
+In the following section we intend to find the backward references in a student’s MFR learning behavior.  Here the backward reference means if a student’s MFR is ‘3-2-4’. Here according to the course’s parts order he should study ‘2’ before ‘3’ whereas in actual his MFR shows that he studied ‘3’ before ‘2’. Please see the file “\OCR\LRS\LRS.xlsx”, tab “backward detect”, we can see that we don’t have any backward paths e.g. ‘1-4-2-5’ in MFRs and this is not due to the algorithm, this is the actual results of the data. The algorithm takes into account the numbers of parts as distinct characters. It doesn’t know that ‘11’ is bigger than ‘10’. Therefore we can say that mostly the student study the courses according to the plan. These are the behavior shown by MFR. The user goes backwards as well but it’s not a very obvious backward like ‘6-5-4-3-2’ usually that light backward behavior is when he goes backward to study his already studied part like ‘2-3-4-5-3-6-7’. Here in file “\OCR\LRS\LRS.xlsx”, tab “backward detect”, each row separately represent an MFR that has been calculated in the above section.
+
+GAPs in student’s learning behavior
+In the following we intend to find the gaps in a student’s learning behavior. Here with a GAP we mean that a student studied a part and then he skipped some part/s and the study the next part.  Please see the file “\OCR\LRS\LRS.xlsx”, tab “gab between real seq”, Here each row represent a distinct student’s behavior according to time. E.g. in the row given below, we can see that this student studied part 8 then 10 skipping the part 9.
+8	10	11	13
+
+GAPs in MFR
+First the GAPS in MFR are presented here “\OCR\LRS\LRS.xlsx”, tab “backward detect”,
+We have gap of 10 parts as well in MFR. Highlighted in red.
+
+Row 286
+2	12										10	0	0	0	0	0	0	0	0	0	10
+
+Here the user has gap of 10 in his MFR. Although 2-12 was not the sequence he followed. The actual sequence he followed “ in MFR_Input.txt row #61” was. 
+“2 3 4 5 6 7 10 7 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 36 19 23 23 30 31 32 31 32 34 34 35 36 36 2 12 13 14 15 30 30 32 ”
+
+He starts from 2 and then follows something and then comes back at 2 again. Therefore due to this behavior we cannot say anything about the gaps in MFR.  In order to find some interesting results regarding GAPs we find the Gaps in student’s direct learning behavior in time.
+
+Please see the file “\OCR\LRS\LRS.xlsx”, tab ‘GAPs with Frequency’. In this tab we can see the results obtained from the subroutine ‘findBackWardAndGap()’  which calculated the GAPs. In the following the column ‘1st Part’ represents that this is the part that a student studied and the column ‘2nd part’ represents the next part the student studied after ‘1st Part’ consecutively. The 3rd column ‘Difference’ represents the difference between the parts studied consecutively. The 4th column ‘frequency’ states the number of time this instance occurred that the students had this behavior.
+
+Example:
+In the following the first row states that part 36 is studied rite after part 34 skipping the part 35. And this instance has happened 51 times. And we can see that the part 35 is ‘TP2 : le super Chat’ for this we can inform the course instructor that this part is not very interesting to most of the students therefore they intend o skip this part most of the time.
+
+1st Part	2nd Part	Difference	Frequency		Missed Part
+34	36	2	51		35
+7	10	3	35		8,9
+6	9	3	29		7,8,9
+2	2	0	25		-
+
+
+Please see the file “\OCR\LRS\LRS.xlsx”, tab ‘Seq Without GAP and thr Freq’. In this tab we can see the results obtained from the subroutine ‘findBackWardAndGap()’  which calculated the GAPs. This tab has the similar format as explained above. Here we can see the results with the frequency for the parts which are studied consecutively. In the following we can see that with the highest frequency the parts studied consecutively are 3 and 4. With this information we are sure that these parts are very much related and there are very less chances that a student skips any part while studying these two.
+seq1	seq2	GAP	Frequency
+3	4	1	187
+4	5	1	175
+2	3	1	158
+
+Rule Growth Algorithm
+In the following section we will apply a Sequential Rule Mining algorithm known as Rule Growth. For this algorithm we have used SPMF which is an open-source data mining mining library written in Java, specialized in pattern mining. RuleGrowth is an algorithm for discovering sequential rules that appears in sequence databases. It was proposed by Fournier-Viger in 2011. Following is the link for the explanation of this algorithm.
+http://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php#rulegrowth
+•	"maximum antecedent length" allows to specify the maximum number of items that can appear in the left side (antecedent) of a rule
+•	"maximum consequent length “allows to specify the maximum number of items that can appear in the right side (consequent) of a rule
+The results obtained after using this algorithm are saved in the following file
+\OCR\RuleGrowth\ RuleGrowth_Output.xlsx
+For our dataset we have applied this algorithm using following parameters and the results are saved in tab named “Unpruned-Ante1”.
+
+Support:		0.05
+Confidence:		0.6
+Max Antecedent size:	1
+
+After obtaining the rules from above step, we prune them and keep only the ones which have more than 1 studied parts, on RHS because it will give us more part focused information, and are presented in tab “Pruned-Ante1” 
+
+In the following for the first row we can say with 73% confidence that if a student has studied part number ‘22’ then he will study parts ‘23;24;25;26’ (in whatever order) as well. Support column says that in our dataset we have 31 such instances when this case happened.
+
+The cases with higher confidence we can say that if a student has studied as certain part as ‘Antecedent’ then he is more likely to study the given ‘Consequent’ parts.
+
+Antecedent	 ==> 	Consequent	Support	Confidence
+22	 ==> 	23;24;25;26	31	0.738095
+6	 ==> 	10	97	0.602484
+11	 ==> 	12;13	114	0.74026
+18	 ==> 	19;21	40	0.625
+
+
+In the following we have executed the algorithm again with the following criteria, here we have increased the confidence and kept the support same  because we had a lot of results for 1 part as consequent, and we tightened the criteria in order to obtain the most interesting results. The results are in tab “Unpruned-Conseq1”
+
+Support:			0.05
+Confidence:			0.7
+Max Consequent size:	1
+
+
+Following are some of the interesting results obtained in this step. In the first row we can say that if a student has studied parts ‘5,6,8,10,11,12’ (in whatever order) then we can say with 100% confidence that he will study part ‘13’ as well. The support column states that in out dataset there ate 32 such instances where this case happened. Whereas if the student has only studied the parts 8,11,12 (in whatever order) then we are 97% sure that he will study part ‘13’ as well.
+
+Antecedent	 ==> 	Consequent	Support	Confidence
+5 ; 6 ; 8 ; 10 ; 11 ; 12	 ==> 	13	32	1
+8 ; 11 ; 12	 ==> 	13	41	0.97619
+16 ; 17 ; 18 ; 19 ; 21 ; 22	 ==> 	24	35	0.972222
+2 ; 3 ; 4 ; 11 ; 12 ; 13 ; 14	 ==> 	15	40	0.952381
+
+				
+				
+				
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Raw results for ongoing calculations, will add the details shortly
+______________________________________________________
+subset of Node.JS data. 61387 rows.
+
+611 distinct users (Including 0)
+user_id==0 --> anonymous
+
+Distinct Part index:36
+part_id	avgDuration
+1059159	1391.038739
+1057759	563.086271
+1057141	373.4265793
+1057023	339.6618764
+1057443	327.0831636
+
+Part and its total number of users.
+part_id	countUser_id
+1056764	3126
+1057142	2975
+1056793	2781
+1057023	2686
+1056866	2630
+nodejsCountOverPart_id.csv
+Which parts sequences are the most redundant (frequent sequence)?
+Following are the top 5 frequent part_ids arranged in descending order.
+ Here in this dataset all the users for each part are distinct. E.g there is no case when
+Part_1->user_1    [Time_1]
+Part_1->user_1   [Time_2]
+
+part_id	#of times Part Appears
+1056764	3126
+1057142	2975
+1056793	2781
+1057023	2686
+1056866	2630
+nodejsCountOverPart_id_redundantParts.csv
+
+
+
+
+
+
+
+
+Sequence CLustering
+predecesor	 	descendent	#of occurance	percentage confidence
+				
+3_4_6_11_12	 ==> 	13	64	0.914285714
+3_4_5_10	 ==> 	11	69	0.831325301
+6_13	 ==> 	14	67	0.807228916
+6_10_11_12	 ==> 	14	61	0.802631579
+3_4_6_10	 ==> 	12	63	0.7875
+11	 ==> 	12_13	114	0.74025974
+4	 ==> 	5_6	128	0.643216
+2	 ==> 	3_4	115	0.638889
+10	 ==> 	11_12_13	89	0.644928
+11_12	 ==> 	13_14_15	77	0.616
+6_10	 ==> 	11_12_13	71	0.70297
+5_10	 ==> 	11_12_13	70	0.714286
+5_6_10	 ==> 	11_12_13	68	0.731183
+
